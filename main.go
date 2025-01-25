@@ -206,6 +206,35 @@ func RetrieveFile(filename string, dialer net.Dialer, controlConnection *net.Con
 	return true
 }
 
+func SendFile(filename string, dialer net.Dialer, controlConnection *net.Conn) bool {
+	buff := make([]byte, 1024)
+
+	fileData,err := os.ReadFile(filename)
+	if  err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	dataConn, err := EstablishDataConnection(*controlConnection, dialer, buff)
+	if  err != nil {
+		fmt.Println(err)
+		return false
+	}
+	
+	code, msg := SendFTPcontrolMessage(*controlConnection, "STOR " + filename, buff)
+	if code != 150{ //TODO make this a define
+		fmt.Println(msg)
+		return false
+	}
+
+	dataConn.Write(fileData)
+	dataConn.Close()
+	(*controlConnection).Read(buff)
+	fmt.Println(buff)
+	fmt.Println("data sent")
+	return true
+}
+
 func main() {
 	var validCommands = []commandInfo {
 		commandInfo {
@@ -219,6 +248,10 @@ func main() {
 		commandInfo {
 			commandPrefix: "get ", 
 			commandFunction: RetrieveFile,
+		},
+		commandInfo {
+			commandPrefix: "stor ", 
+			commandFunction: SendFile,
 		},
 	}
 
