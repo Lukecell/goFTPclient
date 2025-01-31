@@ -30,7 +30,9 @@ func ReceiveData(commandConn net.Conn, dataConn net.Conn, buff []byte) []byte {
 	return nil
 }
 
-func SendFTPcontrolMessage(tcpConnection net.Conn, message string, buff []byte) (int, string) {
+func SendFTPcontrolMessage(tcpConnection net.Conn, message string) (int, string) {
+	var buff = make([]byte, 1024)
+
 	if tcpConnection == nil {
 		return NOT_LOGIN, ""
 	}
@@ -45,6 +47,7 @@ func SendFTPcontrolMessage(tcpConnection net.Conn, message string, buff []byte) 
 	tcpConnection.Write(outputMessage)
 	// get response...
 	for true {
+		fmt.Println("Waiting for response")
 		_,err := tcpConnection.Read(buff)
 
 		responseMessage := string(buff)
@@ -68,7 +71,7 @@ func SendFTPcontrolMessage(tcpConnection net.Conn, message string, buff []byte) 
 */
 func EstablishDataConnection(controlConnection net.Conn, dialer net.Dialer, buff[]byte) (net.Conn, error){
 	var ip [6] int
-	retCode, retMsg := SendFTPcontrolMessage(controlConnection, "PASV", buff)
+	retCode, retMsg := SendFTPcontrolMessage(controlConnection, "PASV")
 
 	if retCode != PASSV_LNK_READY {
 		return nil, fmt.Errorf("%v", retMsg)

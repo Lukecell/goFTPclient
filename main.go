@@ -25,6 +25,10 @@ func main() {
 			commandFunction: List,
 		},
 		commandInfo {
+			commandPrefix: "ls", 
+			commandFunction: List,
+		},
+		commandInfo {
 			commandPrefix: "get ", 
 			commandFunction: RetrieveFile,
 		},
@@ -36,10 +40,12 @@ func main() {
 
 	var d net.Dialer
 	var controlConn net.Conn
+	var recognizedCommand bool
 	buff := make([]byte, 1024)
 
 	reader := bufio.NewReader(os.Stdin)
 	for true {
+		recognizedCommand = false
 		CleanBuffer(buff)
 		fmt.Print("Enter command: ")
 		userInput := ReadUserInput(reader)
@@ -57,12 +63,17 @@ func main() {
 			if strings.HasPrefix(userInput, command.commandPrefix){
 				strippedCommand := strings.TrimPrefix(userInput, command.commandPrefix)
 				command.commandFunction(strippedCommand, d, &controlConn)
+				recognizedCommand = true
 				break
 			}
 		}
 
 		if controlConn == nil {
 			fmt.Println("No current connection. Connect to host")
+		} else if !recognizedCommand && strings.HasPrefix(userInput, "login") {
+			Login(controlConn, reader)
+		} else {		
+			SendFTPcontrolMessage(controlConn, userInput)
 		}
 	}
 

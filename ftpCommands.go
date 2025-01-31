@@ -16,7 +16,7 @@ type commandInfo struct {
 	commandFunction func(string, net.Dialer, *net.Conn) bool
 }
 
-func Login(activeConnection net.Conn, reader *bufio.Reader, buff []byte) bool {
+func Login(activeConnection net.Conn, reader *bufio.Reader) bool {
 	fmt.Print("username: ")
 	userInput := ReadUserInput(reader)
 
@@ -24,14 +24,14 @@ func Login(activeConnection net.Conn, reader *bufio.Reader, buff []byte) bool {
 	passInput := ReadUserInput(reader)
 
 	
-	retCode, _ := SendFTPcontrolMessage(activeConnection, "USER " + userInput, buff)
+	retCode, _ := SendFTPcontrolMessage(activeConnection, "USER " + userInput)
 
 	if retCode != SUCC_USERNAME {
 		fmt.Println("Invalid username")
 		return false
 	}
 
-	retCode, _ = SendFTPcontrolMessage(activeConnection, "PASS " + passInput, buff)
+	retCode, _ = SendFTPcontrolMessage(activeConnection, "PASS " + passInput)
 
 	if retCode != SUCC_LOGIN {
 		fmt.Println("Incorrect password/username. Exiting login function")
@@ -94,7 +94,7 @@ func List(strippedCommand string, dialer net.Dialer, controlConnection *net.Conn
 		fmt.Println(err)
 		return false
 	}
-	SendFTPcontrolMessage(*controlConnection, "LIST", buff)
+	SendFTPcontrolMessage(*controlConnection, "LIST")
 	receivedData := ReceiveData(*controlConnection, dataConn, buff)
 	fmt.Println("Printing received data...")
 	fmt.Println(string(receivedData[:]))
@@ -108,7 +108,7 @@ func RetrieveFile(filename string, dialer net.Dialer, controlConnection *net.Con
 		fmt.Println(err)
 		return false
 	}
-	SendFTPcontrolMessage(*controlConnection, "RETR " + filename, buff)
+	SendFTPcontrolMessage(*controlConnection, "RETR " + filename)
 	receivedData := ReceiveData(*controlConnection, dataConn, buff)
 	receivedData = bytes.TrimRight(receivedData, "\x00")
 	err = os.WriteFile(filename, receivedData, 0666)
@@ -134,7 +134,7 @@ func SendFile(filename string, dialer net.Dialer, controlConnection *net.Conn) b
 		return false
 	}
 	
-	code, msg := SendFTPcontrolMessage(*controlConnection, "STOR " + filename, buff)
+	code, msg := SendFTPcontrolMessage(*controlConnection, "STOR " + filename)
 	if code != 150 { //TODO make this a define
 		fmt.Println(msg)
 		return false
