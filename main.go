@@ -72,7 +72,7 @@ func main() {
 			fmt.Println("No current connection. Connect to host")
 		} else if !recognizedCommand && strings.HasPrefix(userInput, "login") {
 			Login(controlConn, reader)
-		} else {		
+		} else if !recognizedCommand {		
 			SendFTPcontrolMessage(controlConn, userInput)
 		}
 	}
