@@ -61,8 +61,17 @@ func ConnectFTP(strippedCommand string, dialer net.Dialer, controlConnection *ne
 	var err error
 	var buff = make([]byte, 100)
 	fmt.Println(strippedCommand)
-	*controlConnection, err = dialer.Dial("tcp", strippedCommand)
 
+	ipAddress := strippedCommand
+
+	// add default port specifier (21) if caller didn't specify it
+	if !strings.Contains(strippedCommand, ":") {
+		fmt.Printf("port specifier not found, adding one...")
+		ipAddress = ipAddress + ":21"
+	}
+
+	*controlConnection, err = dialer.Dial("tcp", ipAddress)
+	
 
 
 	if err != nil {	
@@ -77,10 +86,10 @@ func ConnectFTP(strippedCommand string, dialer net.Dialer, controlConnection *ne
 	}
 
 	if responseCode == SERVICE_READY {
-		fmt.Println("Connection established with " + strippedCommand)
+		fmt.Println("Connection established with " + ipAddress)
 		return true
 	} else {
-		fmt.Println("Connection could not be established with " + strippedCommand)
+		fmt.Println("Connection could not be established with " + ipAddress)
 		controlConnection = nil
 		return false
 	}
